@@ -1,0 +1,34 @@
+const express = require('express');
+require('dotenv').config();
+const connectDB = require('./config/db');
+const carRoutes = require('./routes/carRoutes');
+const cors = require('cors');
+// Initialisation de l'application Express
+const app = express();
+
+
+// Connexion à la base de données MongoDB
+connectDB();
+// Middleware pour parser le corps des requêtes en JSON
+app.use(express.json());
+app.use(cors());
+
+
+// Route de base pour vérifier que le serveur fonctionne
+app.get('/', (req, res) => {
+  res.send('Bienvenue sur l\'API de gestion de location de voitures');
+});
+
+
+
+// Utilisation des routes pour les voitures
+app.use('/api/cars', carRoutes);
+
+
+
+// Utilisation du port depuis le fichier .env ou 3000 par défaut
+const PORT =3000;
+// Démarrage du serveur
+app.listen(PORT, () => {
+  console.log(`Serveur démarré sur le port ${PORT}`);
+});

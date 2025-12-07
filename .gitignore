@@ -1,0 +1,16 @@
+# Ne pas envoyer les variables sensibles
+.env
+.env.local
+.env.development
+.env.production
+
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+
+# Cache
+dist/
+build/
