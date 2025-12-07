@@ -2,6 +2,7 @@ const express = require('express');
 require('dotenv').config();
 const connectDB = require('./config/db');
 const carRoutes = require('./routes/carRoutes');
+const authRoutes = require('./routes/authRoutes');
 const cors = require('cors');
 // Initialisation de l'application Express
 const app = express();
@@ -23,12 +24,12 @@ app.get('/', (req, res) => {
 
 // Utilisation des routes pour les voitures
 app.use('/api/cars', carRoutes);
+// Utilisation des routes pour l'authentification
+app.use('/api/auth', authRoutes);
 
 
-
-// Utilisation du port depuis le fichier .env ou 3000 par défaut
-const PORT =3000;
+const PORT = process.env.PORT || 5000;
 // Démarrage du serveur
-app.listen(PORT, () => {
+app.listen(PORT,() => {
   console.log(`Serveur démarré sur le port ${PORT}`);
 });
