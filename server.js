@@ -3,6 +3,7 @@ require('dotenv').config();
 const connectDB = require('./config/db');
 const carRoutes = require('./routes/carRoutes');
 const authRoutes = require('./routes/authRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 const cors = require('cors');
 // Initialisation de l'application Express
 const app = express();
@@ -26,6 +27,9 @@ app.get('/', (req, res) => {
 app.use('/api/cars', carRoutes);
 // Utilisation des routes pour l'authentification
 app.use('/api/auth', authRoutes);
+// Utilisation des routes pour les catégories
+app.use('/api/category', categoryRoutes);
+
 
 
 const PORT = process.env.PORT || 5000;
