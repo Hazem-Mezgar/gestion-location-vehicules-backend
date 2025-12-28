@@ -13,7 +13,8 @@ const carschema = new mongoose.Schema(
     description:{
         type:String,
         required:[true,"Description is required"],
-    }
+    },
+    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
 }
 )
 // Crée un modèle Mongoose "Car" basé sur le schéma carschema
