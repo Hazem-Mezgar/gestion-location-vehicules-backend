@@ -3,7 +3,12 @@ require('dotenv').config();
 const connectDB = require('./config/db');
 const carRoutes = require('./routes/carRoutes');
 const authRoutes = require('./routes/authRoutes');
+
+const reservationRoutes = require('./routes/reservationRoutes');
+const contratRoutes = require('./routes/contratRoutes');
+
 const categoryRoutes = require('./routes/categoryRoutes');
+
 const cors = require('cors');
 // Initialisation de l'application Express
 const app = express();
@@ -27,11 +32,17 @@ app.get('/', (req, res) => {
 app.use('/api/cars', carRoutes);
 // Utilisation des routes pour l'authentification
 app.use('/api/auth', authRoutes);
+
+// Utilisation des routes pour les réservations
+app.use('/api/reservations', reservationRoutes);
+//utilisation des routes pour les contrats
+app.use('/api/contrats', contratRoutes);
+
 // Utilisation des routes pour les catégories
 app.use('/api/category', categoryRoutes);
 
 
-
+// Définition du port d'écoute
 const PORT = process.env.PORT || 5000;
 // Démarrage du serveur
 app.listen(PORT,() => {
