@@ -14,6 +14,18 @@ const carschema = new mongoose.Schema(
         type:String,
         required:[true,"Description is required"],
     },
+    pricePerday:{
+        type:Number,
+        required:[true,"Price per day is required"],
+    },
+    imageUrl:{
+        type:String,
+        required:[true,"Image URL is required"],
+    },
+    available:{
+        type:Boolean,
+        default:true,
+    },
     categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
 }
 )

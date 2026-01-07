@@ -4,66 +4,67 @@ const User = require('../models/User');
 const Car = require('../models/car');
 const Contrat = require('../models/Contrat');
 
-// @desc    Create a new reservation
-// @route   POST /api/reservations
-// @access  Private
-const createReservation = asyncHandler(async (req, res) => {
-  const { car, startDate, endDate, price } = req.body;
-const userId = req.user.userId || req.user.id || req.user._id;
 
-  if (!car || !startDate || !endDate || !price) {
-    res.status(400);
-    throw new Error("Please fill all the fields");
-  }
-  if (!price || price <= 0) {
-  res.status(400);
-  throw new Error("Price must be greater than 0");
-}
+const createReservationLogic = async (data) => {
+  const { car, startDate, endDate, price, userId } = data;
+
+  // 1. Date Validations
   if (new Date(startDate) >= new Date(endDate)) {
-  res.status(400);
-  throw new Error("End date must be after start date");
-}
-// Vérifier qu'il n'y a pas de chevauchement pour cette voiture
-const overlappingReservation = await Reservation.findOne({
-  car: car,
-  status: { $in: ['pending', 'confirmed'] },
-  $or: [
-    { startDate: { $lte: new Date(endDate), $gte: new Date(startDate) } },
-    { endDate: { $lte: new Date(endDate), $gte: new Date(startDate) } },
-    { 
-      startDate: { $lte: new Date(startDate) },
-      endDate: { $gte: new Date(endDate) }
-    }
-  ]
-});
-
-
-if (overlappingReservation) {
-  res.status(400);
-  throw new Error("Car is already reserved for these dates");
-}
-  const carExists = await Car.findById(car);
-  if (!carExists) {
-    res.status(404);
-    throw new Error("Car not found");
+    throw new Error("End date must be after start date");
   }
 
+  // 2. Updated Overlap Check
+  // We block the car if there is a reservation that is:
+  // - 'confirmed' (Paid)
+  // - 'accepted' (Admin said yes, waiting for user to pay)
+  const overlappingReservation = await Reservation.findOne({
+    car: car,
+    status: { $in: ['accepted', 'confirmed'] }, 
+    $or: [
+      { startDate: { $lte: new Date(endDate), $gte: new Date(startDate) } },
+      { endDate: { $lte: new Date(endDate), $gte: new Date(startDate) } },
+      { 
+        startDate: { $lte: new Date(startDate) },
+        endDate: { $gte: new Date(endDate) }
+      }
+    ]
+  });
+
+  if (overlappingReservation) {
+    throw new Error("Car is already booked or awaiting payment for these dates");
+  }
+
+  // 3. Create the Reservation as 'pending' so the admin can accept or refuse
   const reservation = await Reservation.create({
     user: userId,
     car,
     startDate,
     endDate,
     price,
-    status: 'pending'
+    status: 'pending' 
   });
 
-  if (reservation) {
-    await reservation.populate('car');
-    await reservation.populate('user');
-    res.status(201).json(reservation);
-  } else {
+  return await reservation.populate(['car', 'user']);
+};
+
+// --- UPDATED ROUTE HANDLER ---
+const createReservation = asyncHandler(async (req, res) => {
+  const { car, startDate, endDate, price } = req.body;
+
+  console.log("User from Request:", req.user);
+  const userId = req.user.userId;
+
+  if (!car || !startDate || !endDate || !price) {
     res.status(400);
-    throw new Error("Invalid reservation data");
+    throw new Error("Please fill all the fields");
+  }
+
+  try {
+    const reservation = await createReservationLogic({ car, startDate, endDate, price, userId });
+    res.status(201).json(reservation);
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
   }
 });
 
@@ -119,11 +120,10 @@ const getReservationById = asyncHandler(async (req, res) => {
 const updateReservationStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
 
-  if (!['pending', 'confirmed', 'canceled', 'completed'].includes(status)) {
+if (!['pending', 'confirmed', 'canceled', 'completed'].includes(status)) {
     res.status(400);
     throw new Error("Invalid status");
   }
-
   const reservation = await Reservation.findByIdAndUpdate(
     req.params.id,
     { status },
@@ -131,23 +131,6 @@ const updateReservationStatus = asyncHandler(async (req, res) => {
   ).populate('car').populate('user');
 
   if (reservation) {
-   // Si status = confirmed, créer le contrat automatiquement
-// Si status = confirmed, créer le contrat automatiquement (si pas déjà créé)
-if (status === 'confirmed') {
-  const existingContrat = await Contrat.findOne({ reservation: reservation._id });
-  
-  if (!existingContrat) {
-    const contractNumber = `CONT-${Date.now()}`;
-    
-    await Contrat.create({
-      contractNumber,
-      user: reservation.user._id,
-      reservation: reservation._id,
-      startDate: reservation.startDate,
-      endDate: reservation.endDate
-    });
-  }
-}
 
     res.status(200).json(reservation);
   } else {
