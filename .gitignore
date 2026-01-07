@@ -1,0 +1,92 @@
+# ============ DEPENDENCIES ============
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ============ ENVIRONMENT ============
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# ============ LOGS ============
+logs
+*.log
+lerna-debug.log*
+
+# ============ RUNTIME DATA ============
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# ============ COVERAGE ============
+coverage/
+.nyc_output/
+
+# ============ BUILD OUTPUTS ============
+dist/
+build/
+.out/
+.next/
+
+# ============ IDE ============
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-*
+.history/
+
+# ============ OS ============
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ============ TEMP FILES ============
+tmp/
+temp/
+*.tmp
+*.temp
+
+# ============ DATABASE ============
+*.db
+*.sqlite
+*.sqlite3
+dump.rdb
+
+# ============ UPLOADS/MEDIA ============
+uploads/
+public/uploads/
+storage/
+media/
+static/uploads/
+
+# ============ DOCKER ============
+.dockerignore
+docker-compose.override.yml
+
+# ============ TESTING ============
+.nyc_output
+report.xml
+test-results.xml
+
+# ============ SECURITY ============
+*.pem
+*.key
+*.crt
+
+# ============ CUSTOM ============
+# Add any project-specific ignores here
