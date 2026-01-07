@@ -6,23 +6,50 @@ const Category = require("../models/Category");
 // @route   POST /api/cars
 //access   Public
 const createCar = asyncHandler(async (req, res) => {
-  const { plate, brand, description } = req.body;
-  if (!plate || !brand || !description) {
+  const {
+    plate,
+    brand,
+    description,
+    pricePerday,
+    imageUrl,
+    available,
+    categories,
+  } = req.body;
+
+  if (!plate || !brand || !description || !pricePerday || !imageUrl) {
     res.status(400);
-    throw new Error("please fill the fields");
+    throw new Error(
+      "Please fill all required fields (plate, brand, description, pricePerday, imageUrl)"
+    );
   }
+
   const carExists = await Car.findOne({ plate });
+
   if (carExists) {
     res.status(400);
     throw new Error("Car already exists");
   }
-  const car = await Car.create({ plate, brand, description });
+
+  const car = await Car.create({
+    plate,
+    brand,
+    description,
+    pricePerday,
+    imageUrl,
+    available: available !== undefined ? available : true,
+    categories,
+  });
+
   if (car) {
     res.status(201).json({
       _id: car._id,
       plate: car.plate,
       brand: car.brand,
       description: car.description,
+      pricePerday: car.pricePerday,
+      imageUrl: car.imageUrl,
+      available: car.available,
+      categories: car.categories,
     });
   } else {
     res.status(400);
@@ -34,7 +61,7 @@ const createCar = asyncHandler(async (req, res) => {
 // @route   GET /api/cars
 //access   Public
 const getCars = asyncHandler(async (req, res) => {
-  const cars = await Car.find({});
+  const cars = await Car.find({}).populate("categories", "name");
   res.status(200).json(cars);
 });
 
@@ -42,7 +69,7 @@ const getCars = asyncHandler(async (req, res) => {
 // @route   GET /api/cars/:id
 //access   Public
 const getCarById = asyncHandler(async (req, res) => {
-  const car = await Car.findById(req.params.id);
+  const car = await Car.findById(req.params.id).populate("categories");
   if (car) {
     res.status(200).json(car);
   } else {
@@ -69,13 +96,11 @@ const deleteCar = asyncHandler(async (req, res) => {
 // @route   PUT /api/cars/:id
 //access   Public
 const updateCar = asyncHandler(async (req, res) => {
-  const { plate, brand, description } = req.body;
-
   const updatedCar = await Car.findByIdAndUpdate(
     req.params.id,
-    { plate, brand, description },
+    req.body, 
     { new: true, runValidators: true }
-  );
+  ).populate("categories");
 
   if (updatedCar) {
     res.status(200).json(updatedCar);
@@ -89,31 +114,28 @@ const updateCar = asyncHandler(async (req, res) => {
 // @route   GET /api/cars/search?plate=...
 //access   Public
 const searchCarsByPlate = asyncHandler(async (req, res) => {
-  const plateQuery = req.params.plate;
+  const plateQuery = req.query.plate; // Change from req.params to req.query
   if (!plateQuery) {
     res.status(400);
     throw new Error("Please provide a plate query parameter");
-  } else {
-    const cars = await Car.find({ plate: { $regex: plateQuery } });
-    res.status(200).json(cars);
   }
+  
+  const cars = await Car.find({ plate: { $regex: plateQuery, $options: 'i' } });
+  res.status(200).json(cars);
 });
 
 // @desc   Attach categories to a car
 // @route  PUT /api/cars/:id/categories
 // @access Admin (protect in routes)
 const attachCategoriesToCar = asyncHandler(async (req, res) => {
-  const { id } = req.params; // car id
+  const { id } = req.params; 
   const { categoryIds = [] } = req.body;
-  //console.log("we are inside attach categories to car");
   // check car exists
   const car = await Car.findById(id);
   if (!car) {
     res.status(404);
     throw new Error("Car not found");
   }
-
-  //console.log("we checked if the car exists");
 
   //verify categories exist
   const existingCategories = await Category.find({
@@ -124,13 +146,11 @@ const attachCategoriesToCar = asyncHandler(async (req, res) => {
     throw new Error("One or more categories do not exist");
   }
 
-  //console.log("we verified that categories exist");
 
   // update car categories
   car.categories = categoryIds;
   await car.save();
 
-  //console.log("we updated car categories");
 
   //maintain reverse relation on Category.cars
   await Category.updateMany(
@@ -138,12 +158,10 @@ const attachCategoriesToCar = asyncHandler(async (req, res) => {
     { $addToSet: { cars: car._id } }
   );
 
-  //console.log("we maintained reverse relation on Category.cars");
 
   const populatedCar = await car.populate("categories");
   res.status(200).json(populatedCar);
 
-  //console.log("we sent response");
 });
 
 // Exportation des fonctions du contrôleur pour les utiliser dans les routes

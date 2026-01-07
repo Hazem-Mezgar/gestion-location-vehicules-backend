@@ -1,17 +1,19 @@
 const express = require('express');
 require('dotenv').config();
 const connectDB = require('./config/db');
-const carRoutes = require('./routes/carRoutes');
-const authRoutes = require('./routes/authRoutes');
-
-const reservationRoutes = require('./routes/reservationRoutes');
-const contratRoutes = require('./routes/contratRoutes');
-
-const categoryRoutes = require('./routes/categoryRoutes');
 
 const cors = require('cors');
-// Initialisation de l'application Express
 const app = express();
+
+
+const carRoutes = require('./routes/carRoutes');
+const authRoutes = require('./routes/authRoutes');
+const reservationRoutes = require('./routes/reservationRoutes');
+const contratRoutes = require('./routes/contratRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+
+
 
 
 // Connexion à la base de données MongoDB
@@ -36,7 +38,10 @@ app.use('/api/auth', authRoutes);
 // Utilisation des routes pour les réservations
 app.use('/api/reservations', reservationRoutes);
 //utilisation des routes pour les contrats
-app.use('/api/contrats', contratRoutes);
+app.use('/api/contracts', contratRoutes);
+
+// Utilisation des routes pour les paiements
+app.use('/api/payments', paymentRoutes);
 
 // Utilisation des routes pour les catégories
 app.use('/api/category', categoryRoutes);
